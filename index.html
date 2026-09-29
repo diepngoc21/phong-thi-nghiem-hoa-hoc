@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phòng Thí Nghiệm Hóa Học Ảo Pro - STEM Lab</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Lab Grid Background */
+        .lab-bench-grid {
+            background-color: #090d16;
+            background-image: 
+                radial-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px),
+                linear-gradient(to right, rgba(30, 41, 59, 0.3) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(30, 41, 59, 0.3) 1px, transparent 1px);
+            background-size: 24px 24px, 48px 48px, 48px 48px;
+        }
+
+        /* ANIMATIONS FOR CHEMICAL PHENOMENA */
+        @keyframes bubbleUpFast {
+            0% { transform: translateY(0) scale(0.5); opacity: 0.9; }
+            100% { transform: translateY(-110px) scale(1.3); opacity: 0; }
+        }
+
+        @keyframes steamRiseSmooth {
+            0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0.6; }
+            50% { opacity: 0.3; transform: translateY(-40px) scale(1.4) rotate(15deg); }
+            100% { transform: translateY(-90px) scale(2.2) rotate(-15deg); opacity: 0; }
+        }
+
+        @keyframes flameFlickerCore {
+            0%, 100% { transform: scaleY(1) scaleX(1) rotate(-1deg); opacity: 0.95; }
+            25% { transform: scaleY(1.12) scaleX(0.92) rotate(1.5deg); opacity: 1; }
+            50% { transform: scaleY(0.92) scaleX(1.08) rotate(-1deg); opacity: 0.9; }
+            75% { transform: scaleY(1.18) scaleX(0.88) rotate(2deg); opacity: 1; }
+        }
+
+        @keyframes sodiumSkate {
+            0% { transform: translate(0px, 0px) scale(1); }
+            25% { transform: translate(18px, -4px) scale(1.1); }
+            50% { transform: translate(-15px, 2px) scale(0.95); }
+            75% { transform: translate(12px, -2px) scale(1.05); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+
+        .bubble-particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: bubbleUpFast 1s infinite ease-in;
+            box-shadow: 0 0 6px rgba(255,255,255,0.9);
+        }
+
+        .steam-particle {
+            position: absolute;
+            background: rgba(226, 232, 240, 0.45);
+            border-radius: 50%;
+            filter: blur(5px);
+            pointer-events: none;
+            animation: steamRiseSmooth 2.2s infinite ease-out;
+        }
+
+        .flame-core {
+            animation: flameFlickerCore 0.15s infinite ease-in-out alternate;
+            transform-origin: bottom center;
+        }
+
+        .sodium-active {
+            animation: sodiumSkate 0.6s infinite ease-in-out;
+            box-shadow: 0 0 15px #f97316, 0 0 25px #eab308;
+        }
+
+        /* Fluid Layers */
+        .liquid-layer {
+            transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.8s ease, filter 0.5s ease;
+        }
+
+        .precipitate-layer {
+            transition: opacity 0.8s ease, height 0.8s ease, background-color 0.8s ease;
+        }
+
+        .glass-reflection {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.06) 100%);
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        .draggable-item {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .draggable-item:hover {
+            transform: translateY(-2px);
+        }
+        .draggable-item:active {
+            transform: scale(0.97);
+        }
+
+        .glass-selected {
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.5), inset 0 0 15px rgba(99, 102, 241, 0.2);
+            border-color: #6366f1 !important;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 h-full flex flex-col overflow-hidden select-none">
+
+    <!-- TOP NAVBAR -->
+    <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-3 flex justify-between items-center z-30 shadow-lg backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-indigo-600 via-violet-600 to-pink-500 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 text-white">
+                <i class="fa-solid fa-atom text-xl animate-spin" style="animation-duration: 12s;"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
+                    PHÒNG THÍ NGHIỆM HÓA HỌC ẢO
+                    <span class="text-[10px] uppercase font-black bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-2 py-0.5 rounded-full shadow-sm">ULTRA STEM 4.0</span>
+                </h1>
+                <p class="text-xs text-slate-400">Mô phỏng phản ứng trực quan, kết tủa lắng đáy & sinh khí sinh động</p>
+            </div>
+        </div>
+
+        <!-- Header Quick Action Bar -->
+        <div class="flex items-center gap-2">
+            <button onclick="openModal('solubility')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-table text-cyan-400"></i> Bảng Tính Tan
+            </button>
+            <button onclick="openModal('periodic')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-chart-simple text-purple-400"></i> Bảng Tuần Hoàn
+            </button>
+            <button onclick="openModal('ph')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-swatchbook text-amber-400"></i> Bảng Thang pH
+            </button>
+            <div class="h-5 w-px bg-slate-800 mx-1"></div>
+            <button onclick="cleanLabBench()" class="bg-rose-600/90 hover:bg-rose-600 text-white border border-rose-500/50 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-lg shadow-rose-900/20 active:scale-95">
+                <i class="fa-solid fa-arrows-rotate"></i> Rửa Cốc / Làm Mới
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN LAB APP CONTAINER -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- ================= PANEL 1: LEFT SIDEBAR (TOOLS & DIVERSE CHEMICAL CABINET) ================= -->
+        <aside class="w-80 bg-slate-900/95 border-r border-slate-800 flex flex-col z-20 shadow-2xl">
+            <!-- Sidebar Navigation Tabs -->
+            <div class="flex border-b border-slate-800 bg-slate-950/60 p-1 gap-1">
+                <button id="tab-btn-chems" onclick="switchSidebarTab('chems')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white flex justify-center items-center gap-2 transition">
+                    <i class="fa-solid fa-flask"></i> HÓA CHẤT (22)
+                </button>
+                <button id="tab-btn-tools" onclick="switchSidebarTab('tools')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 flex justify-center items-center gap-2 transition">
+                    <i class="fa-solid fa-toolbox"></i> DỤNG CỤ
+                </button>
+            </div>
+
+            <!-- TAB CONTENT 1: EXPANDED CHEMICAL CABINET -->
+            <div id="tab-content-chems" class="p-3.5 flex-1 overflow-y-auto space-y-4">
+                
+                <!-- Group 1: Acids -->
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-vial-circle-check"></i> AXIT (4)
+                    </span>
+                    <div class="grid grid-cols-1 gap-1.5">
+                        <div onclick="addChemicalToSelected('HCl')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-rose-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">HCl (Axit Clohidric)</span>
+                            <span class="text-[10px] bg-red-950/80 text-red-400 border border-red-800/50 px-1.5 py-0.5 rounded font-mono">Axit mạnh</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('H2SO4')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-rose-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">H₂SO₄ (Axit Sunfuric)</span>
+                            <span class="text-[10px] bg-red-950/80 text-red-400 border border-red-800/50 px-1.5 py-0.5 rounded font-mono">Đặc / Loãng</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('HNO3')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-rose-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">HNO₃ (Axit Nitric)</span>
+                            <span class="text-[10px] bg-red-950/80 text-red-400 border border-red-800/50 px-1.5 py-0.5 rounded font-mono">Axit mạnh</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('CH3COOH')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-rose-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">CH₃COOH (Giấm ăn)</span>
+                            <span class="text-[10px] bg-orange-950/80 text-orange-400 border border-orange-800/50 px-1.5 py-0.5 rounded font-mono">Axit yếu</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 2: Bases -->
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-prescription-bottle text-sky-400"></i> BAZƠ & KIỀM (4)
+                    </span>
+                    <div class="grid grid-cols-1 gap-1.5">
+                        <div onclick="addChemicalToSelected('NaOH')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-sky-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">NaOH (Natri Hiđroxit)</span>
+                            <span class="text-[10px] bg-blue-950/80 text-blue-400 border border-blue-800/50 px-1.5 py-0.5 rounded font-mono">Kiềm mạnh</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('Ca(OH)2')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-sky-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">Ca(OH)₂ (Nước vôi trong)</span>
+                            <span class="text-[10px] bg-blue-950/80 text-blue-400 border border-blue-800/50 px-1.5 py-0.5 rounded font-mono">Dung dịch</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('Ba(OH)2')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-sky-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">Ba(OH)₂ (Bari Hiđroxit)</span>
+                            <span class="text-[10px] bg-blue-950/80 text-blue-400 border border-blue-800/50 px-1.5 py-0.5 rounded font-mono">Bazơ mạnh</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('NH3')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-sky-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">NH₃ (Dung dịch Amoniac)</span>
+                            <span class="text-[10px] bg-sky-950/80 text-sky-400 border border-sky-800/50 px-1.5 py-0.5 rounded font-mono">Kiềm yếu</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 3: Salts & Compounds -->
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-purple-400 flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-cube text-purple-400"></i> MUỐI & DUNG DỊCH TẠO KẾT TỦA (7)
+                    </span>
+                    <div class="grid grid-cols-1 gap-1.5">
+                        <div onclick="addChemicalToSelected('CuSO4')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-cyan-500/60 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400"></span>
+                                <span class="text-xs font-medium text-slate-200">CuSO₄ (Đồng II Sunfat)</span>
+                            </div>
+                            <span class="text-[10px] text-cyan-400 font-mono">Xanh lam</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('FeCl3')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-amber-500/60 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-600 shadow-sm shadow-amber-600"></span>
+                                <span class="text-xs font-medium text-slate-200">FeCl₃ (Sắt III Clorua)</span>
+                            </div>
+                            <span class="text-[10px] text-amber-500 font-mono">Vàng nâu</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('FeSO4')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-emerald-500/60 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500"></span>
+                                <span class="text-xs font-medium text-slate-200">FeSO₄ (Sắt II Sunfat)</span>
+                            </div>
+                            <span class="text-[10px] text-emerald-400 font-mono">Xanh lục nhạt</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('AgNO3')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-slate-400 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">AgNO₃ (Bạc Nitrat)</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Không màu</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('BaCl2')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-slate-400 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">BaCl₂ (Bari Clorua)</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Dung dịch</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('KMnO4')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-purple-500/60 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-purple-600 shadow-sm shadow-purple-600"></span>
+                                <span class="text-xs font-medium text-slate-200">KMnO₄ (Thuốc tím)</span>
+                            </div>
+                            <span class="text-[10px] text-purple-400 font-mono">Tím đậm</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('KI')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-amber-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">KI (Kali Iotua)</span>
+                            <span class="text-[10px] text-amber-300 font-mono">Dung dịch</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 4: Solids & Reactive Metals -->
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-shapes text-emerald-400"></i> KIM LOẠI & CHẤT RẮN (5)
+                    </span>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button onclick="addChemicalToSelected('Na')" class="p-2 bg-slate-800/70 border border-rose-500/40 hover:border-rose-500 rounded-xl flex items-center justify-between transition text-left">
+                            <span class="text-xs font-medium text-slate-200">Natri (Na)</span>
+                            <span class="text-[9px] bg-rose-950 text-rose-300 px-1 rounded font-bold">Mãnh liệt</span>
+                        </button>
+                        <button onclick="addChemicalToSelected('Zn')" class="p-2 bg-slate-800/70 border border-slate-700 hover:border-indigo-500 rounded-xl flex items-center justify-between transition text-left">
+                            <span class="text-xs font-medium text-slate-200">Kẽm (Zn)</span>
+                            <span class="text-[9px] text-slate-400">Hạt</span>
+                        </button>
+                        <button onclick="addChemicalToSelected('Mg')" class="p-2 bg-slate-800/70 border border-slate-700 hover:border-indigo-500 rounded-xl flex items-center justify-between transition text-left">
+                            <span class="text-xs font-medium text-slate-200">Magie (Mg)</span>
+                            <span class="text-[9px] text-slate-400">Dải</span>
+                        </button>
+                        <button onclick="addChemicalToSelected('CaCO3')" class="p-2 bg-slate-800/70 border border-slate-700 hover:border-indigo-500 rounded-xl flex items-center justify-between transition text-left">
+                            <span class="text-xs font-medium text-slate-200">Đá vôi (CaCO₃)</span>
+                            <span class="text-[9px] text-stone-300">Rắn</span>
+                        </button>
+                        <button onclick="addChemicalToSelected('Cu')" class="p-2 bg-slate-800/70 border border-slate-700 hover:border-indigo-500 rounded-xl flex items-center justify-between transition text-left col-span-2">
+                            <span class="text-xs font-medium text-slate-200">Đồng mảnh (Cu)</span>
+                            <span class="text-[9px] text-amber-600 font-bold">Đỏ kim loại</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 5: Indicators & Special Reagents -->
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-droplet text-amber-400"></i> CHẤT CHỈ THỊ & ĐẶC BIỆT (4)
+                    </span>
+                    <div class="grid grid-cols-1 gap-1.5">
+                        <div onclick="addChemicalToSelected('Phenolphthalein')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-pink-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">Phenolphthalein</span>
+                            <span class="text-[10px] text-pink-400 font-mono">Chỉ thị pH</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('Quỳ tím')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-purple-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">Dung dịch Quỳ tím</span>
+                            <span class="text-[10px] text-purple-400 font-mono">Chỉ thị pH</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('Hồ tinh bột')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-amber-500/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">Hồ tinh bột</span>
+                            <span class="text-[10px] text-slate-300 font-mono">Trắng đục</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('Dung dịch I2')" class="draggable-item p-2 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:border-amber-600/60 flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-200">Dung dịch Iốt (I₂)</span>
+                            <span class="text-[10px] text-amber-600 font-mono">Vàng nâu</span>
+                        </div>
+                        <div onclick="addChemicalToSelected('H2O')" class="draggable-item p-2 rounded-xl bg-sky-950/40 border border-sky-700/50 hover:border-sky-400 flex items-center justify-between">
+                            <span class="text-xs font-bold text-sky-200">Nước cất (H₂O)</span>
+                            <span class="text-[10px] text-sky-400 font-mono">Hòa tan</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAB CONTENT 2: LAB APPARATUS TOOLS -->
+            <div id="tab-content-tools" class="p-4 flex-1 overflow-y-auto space-y-3 hidden">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Thêm Dụng Cụ Ra Bàn Thí Nghiệm</span>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div onclick="spawnEquipment('beaker')" class="draggable-item bg-slate-800/70 hover:bg-indigo-950/50 border border-slate-700 hover:border-indigo-500/80 rounded-xl p-3 flex flex-col items-center gap-1.5 text-center transition group">
+                        <i class="fa-solid fa-glass-water text-2xl text-indigo-400 group-hover:scale-110 transition"></i>
+                        <span class="text-xs font-semibold text-slate-200">Cốc Thủy Tinh (Beaker)</span>
+                    </div>
+
+                    <div onclick="spawnEquipment('testtube')" class="draggable-item bg-slate-800/70 hover:bg-indigo-950/50 border border-slate-700 hover:border-indigo-500/80 rounded-xl p-3 flex flex-col items-center gap-1.5 text-center transition group">
+                        <i class="fa-solid fa-vial text-2xl text-indigo-400 group-hover:scale-110 transition"></i>
+                        <span class="text-xs font-semibold text-slate-200">Ống Nghiệm (Test Tube)</span>
+                    </div>
+
+                    <div onclick="spawnEquipment('flask')" class="draggable-item bg-slate-800/70 hover:bg-indigo-950/50 border border-slate-700 hover:border-indigo-500/80 rounded-xl p-3 flex flex-col items-center gap-1.5 text-center transition group">
+                        <i class="fa-solid fa-flask-vial text-2xl text-indigo-400 group-hover:scale-110 transition"></i>
+                        <span class="text-xs font-semibold text-slate-200">Bình Tam Giác (Erlenmeyer)</span>
+                    </div>
+
+                    <div onclick="spawnEquipment('burner')" class="draggable-item bg-slate-800/70 hover:bg-amber-950/50 border border-slate-700 hover:border-amber-500/80 rounded-xl p-3 flex flex-col items-center gap-1.5 text-center transition group">
+                        <i class="fa-solid fa-fire-burner text-2xl text-amber-400 group-hover:scale-110 transition"></i>
+                        <span class="text-xs font-semibold text-slate-200">Đèn Cồn Đun Nóng</span>
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-800">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2">Thao Tác Tương Tác Nhanh</span>
+                    <button onclick="dipPhPaper()" class="w-full py-2.5 bg-amber-900/30 border border-amber-600/50 hover:bg-amber-900/60 text-amber-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 shadow-md">
+                        <i class="fa-solid fa-vial-virus text-amber-400"></i> Nhúng Giấy Thử pH Nhanh
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ================= PANEL 2: MAIN LAB BENCH CANVAS ================= -->
+        <main class="flex-1 relative flex flex-col lab-bench-grid overflow-hidden">
+            <!-- Top Bench Status Header Bar -->
+            <div class="p-3 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-6 z-10 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="instruction-text" class="text-xs text-slate-300 font-medium">
+                        Nhấp chọn một dụng cụ thủy tinh bên dưới, sau đó chọn hóa chất bên trái để tiến hành phản ứng.
+                    </span>
+                </div>
+                <div id="burner-status-badge" class="hidden items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-xs text-amber-300 font-bold">
+                    <i class="fa-solid fa-fire text-amber-400 animate-bounce"></i> Hệ thống đang đun nóng
+                </div>
+            </div>
+
+            <!-- LAB BENCH CANVASES & EQUIPMENT DISPLAY AREA -->
+            <div id="lab-bench" class="flex-1 relative flex items-center justify-center gap-10 p-8 overflow-x-auto select-none">
+                <!-- Dynamically generated equipment items -->
+            </div>
+
+            <!-- Floating Dip pH Strip Result Visualizer -->
+            <div id="ph-strip-result" class="hidden absolute top-16 right-8 bg-slate-900/95 border border-slate-700 backdrop-blur-xl rounded-2xl p-4 shadow-2xl flex items-center gap-4 z-30 transition-all duration-300">
+                <div class="flex flex-col items-center gap-1">
+                    <span class="text-[9px] text-slate-400 font-extrabold uppercase">MÀU GIẤY PH</span>
+                    <div id="ph-paper-color" class="w-6 h-16 rounded-md border border-white/20 shadow-inner bg-amber-300 transition-colors duration-500"></div>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 block font-semibold">Kết Quả Đo pH:</span>
+                    <h4 id="ph-paper-value" class="text-2xl font-black text-indigo-400 font-mono">pH 7.0</h4>
+                    <span id="ph-paper-nature" class="text-xs font-extrabold text-emerald-400">Môi trường Trung tính</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- ================= PANEL 3: RIGHT PANEL MONITOR & REACTION LOG ================= -->
+        <aside class="w-80 bg-slate-900/95 border-l border-slate-800 flex flex-col z-20 shadow-2xl">
+            <!-- Title Header -->
+            <div class="p-3.5 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+                <h3 class="text-xs font-black uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+                    <i class="fa-solid fa-gauge-high"></i> Giám Sát Phản Ứng (Real-time)
+                </h3>
+                <span class="w-2 h-2 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500"></span>
+            </div>
+
+            <!-- Reaction Metrics Monitor Dashboard Cards -->
+            <div class="p-3.5 space-y-2.5 bg-slate-900">
+                <!-- Temperature Meter Card -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                            <i class="fa-solid fa-temperature-full text-base"></i>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold block uppercase">Nhiệt Độ Cốc</span>
+                            <span id="metric-temp" class="text-sm font-bold font-mono text-slate-100">25.0 °C</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- pH Level Card -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                            <i class="fa-solid fa-droplet text-base"></i>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold block uppercase">Môi Trường & pH</span>
+                            <span id="metric-ph" class="text-sm font-bold font-mono text-slate-100">7.0 (Trung tính)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phenomenon Text Card -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                    <span class="text-[9px] text-slate-400 font-bold block uppercase mb-1">Hiện Tượng Quan Sát</span>
+                    <p id="metric-phenomenon" class="text-xs font-medium text-slate-300 leading-relaxed">
+                        Chưa ghi nhận phản ứng đặc trưng nào trong dụng cụ được chọn.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Notebook Log Header -->
+            <div class="px-3.5 py-2.5 border-y border-slate-800 bg-slate-950/60 flex items-center justify-between">
+                <h3 class="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                    <i class="fa-solid fa-book-bookmark"></i> Sổ Tay Nhật Ký Phản Ứng
+                </h3>
+                <span id="notebook-count" class="text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800/50 px-2 py-0.5 rounded-full">0 Phản ứng</span>
+            </div>
+
+            <!-- Notebook Reaction Log Scrollable List -->
+            <div id="notebook-list" class="flex-1 overflow-y-auto p-3.5 space-y-2.5">
+                <div id="notebook-empty" class="text-center py-12 text-slate-500">
+                    <i class="fa-solid fa-vial-circle-check text-3xl mb-2 opacity-30"></i>
+                    <p class="text-xs">Chưa có phản ứng hóa học nào được kích hoạt.</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- ================= MODALS SECTION ================= -->
+    <!-- MODAL 1: SOLUBILITY TABLE -->
+    <div id="modal-solubility" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full p-5 relative max-h-[85vh] flex flex-col">
+            <button onclick="closeModal('solubility')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-200">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-base font-bold text-slate-100 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-table text-cyan-400"></i> Bảng Tính Tan Của Các Muối & Bazơ Thông Dụng
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Tra cứu tính tan để dự đoán sự tạo thành kết tủa lắng đáy trong phòng thí nghiệm.</p>
+
+            <div class="flex-1 overflow-auto border border-slate-800 rounded-xl">
+                <table class="w-full text-center text-xs font-mono">
+                    <thead class="bg-slate-950 text-indigo-400 sticky top-0">
+                        <tr>
+                            <th class="p-2 border border-slate-800">Gốc Acid / Cation</th>
+                            <th class="p-2 border border-slate-800">Na⁺</th>
+                            <th class="p-2 border border-slate-800">K⁺</th>
+                            <th class="p-2 border border-slate-800">Ba²⁺</th>
+                            <th class="p-2 border border-slate-800">Cu²⁺</th>
+                            <th class="p-2 border border-slate-800">Fe²⁺ / Fe³⁺</th>
+                            <th class="p-2 border border-slate-800">Ag⁺</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-300">
+                        <tr>
+                            <td class="p-2 font-bold bg-slate-950 text-left border border-slate-800">OH⁻ (Hiđroxit)</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-rose-400 font-bold bg-rose-950/20">K (Xanh lơ)</td>
+                            <td class="p-2 border border-slate-800 text-rose-400 font-bold bg-rose-950/20">K (Lục / Đỏ nâu)</td>
+                            <td class="p-2 border border-slate-800 text-slate-500">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-bold bg-slate-950 text-left border border-slate-800">Cl⁻ (Clo)</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-rose-400 font-bold bg-rose-950/20">K (Trắng AgCl)</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-bold bg-slate-950 text-left border border-slate-800">SO₄²⁻ (Sunfat)</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-rose-400 font-bold bg-rose-950/20">K (Trắng BaSO₄)</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-amber-400 font-bold">I (Ít tan)</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-bold bg-slate-950 text-left border border-slate-800">NO₃⁻ (Nitrat)</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                            <td class="p-2 border border-slate-800 text-emerald-400 font-bold">T</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 text-xs text-slate-400 flex justify-between items-center">
+                <span>Chú thích: <strong class="text-emerald-400">T</strong>: Tan | <strong class="text-rose-400">K</strong>: Không tan (Kết tủa) | <strong class="text-amber-400">I</strong>: Ít tan</span>
+                <button onclick="closeModal('solubility')" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: PERIODIC TABLE MINI -->
+    <div id="modal-periodic" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full p-5 relative">
+            <button onclick="closeModal('periodic')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-200">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-base font-bold text-slate-100 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-chart-simple text-purple-400"></i> Bảng Tuần Hoàn Tra Cứu Nhanh
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Các nguyên tố chính có trong thí nghiệm này.</p>
+
+            <div class="grid grid-cols-4 gap-2.5 text-xs font-mono">
+                <div class="p-2.5 bg-slate-950 border border-rose-500/40 rounded-xl">
+                    <span class="text-[10px] text-slate-500">Z=1</span>
+                    <h4 class="text-lg font-extrabold text-rose-400">H</h4>
+                    <span class="text-[10px] text-slate-300">Hydro (1.008)</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 border border-sky-500/40 rounded-xl">
+                    <span class="text-[10px] text-slate-500">Z=11</span>
+                    <h4 class="text-lg font-extrabold text-sky-400">Na</h4>
+                    <span class="text-[10px] text-slate-300">Natri (22.99)</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 border border-emerald-500/40 rounded-xl">
+                    <span class="text-[10px] text-slate-500">Z=12</span>
+                    <h4 class="text-lg font-extrabold text-emerald-400">Mg</h4>
+                    <span class="text-[10px] text-slate-300">Magie (24.31)</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 border border-indigo-500/40 rounded-xl">
+                    <span class="text-[10px] text-slate-500">Z=30</span>
+                    <h4 class="text-lg font-extrabold text-indigo-400">Zn</h4>
+                    <span class="text-[10px] text-slate-300">Kẽm (65.38)</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 border border-amber-500/40 rounded-xl">
+                    <span class="text-[10px] text-slate-500">Z=26</span>
+                    <h4 class="text-lg font-extrabold text-amber-500">Fe</h4>
+                    <span class="text-[10px] text-slate-300">Sắt (55.85)</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 border border-cyan-500/40 rounded-xl">
+                    <span class="text-[10px] text-slate-500">Z=29</span>
+                    <h4 class="text-lg font-extrabold text-cyan-400">Cu</h4>
+                    <span class="text-[10px] text-slate-300">Đồng (63.55)</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 border border-purple-500/40 rounded-xl">
+                    <span class="text-[10px] text-slate-500">Z=56</span>
+                    <h4 class="text-lg font-extrabold text-purple-400">Ba</h4>
+                    <span class="text-[10px] text-slate-300">Bari (137.33)</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 border border-slate-500/40 rounded-xl">
+                    <span class="text-[10px] text-slate-500">Z=47</span>
+                    <h4 class="text-lg font-extrabold text-slate-200">Ag</h4>
+                    <span class="text-[10px] text-slate-300">Bạc (107.87)</span>
+                </div>
+            </div>
+
+            <div class="mt-4 text-right">
+                <button onclick="closeModal('periodic')" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: PH SCALE GUIDE -->
+    <div id="modal-ph" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full p-6 relative">
+            <button onclick="closeModal('ph')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-200">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-base font-bold text-slate-100 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-swatchbook text-amber-400"></i> Thước Đo Chỉ Số pH Chuẩn Hóa Học
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Mô phỏng màu sắc khi thử giấy quỳ tím hoặc dung dịch chỉ thị.</p>
+
+            <div class="space-y-3">
+                <div class="h-10 rounded-xl flex overflow-hidden shadow-inner text-[10px] font-bold text-white text-center leading-10 font-mono">
+                    <div style="background:#ef4444;" class="flex-1">1-2</div>
+                    <div style="background:#f97316;" class="flex-1">3-4</div>
+                    <div style="background:#eab308;" class="flex-1">5-6</div>
+                    <div style="background:#22c55e;" class="flex-1">7</div>
+                    <div style="background:#06b6d4;" class="flex-1">8-9</div>
+                    <div style="background:#3b82f6;" class="flex-1">10-11</div>
+                    <div style="background:#6366f1;" class="flex-1">12-14</div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2.5 text-xs">
+                    <div class="p-3 rounded-xl bg-red-950/40 border border-red-800/40">
+                        <strong class="text-red-400 block mb-1">Môi trường Axit (pH < 7)</strong>
+                        <span class="text-slate-400 text-[11px] block">HCl, H₂SO₄, HNO₃. Quỳ tím hóa Đỏ.</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/40">
+                        <strong class="text-emerald-400 block mb-1">Trung Tính (pH = 7)</strong>
+                        <span class="text-slate-400 text-[11px] block">Nước cất H₂O, Muối NaCl. Quỳ giữ màu Tím.</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-indigo-950/40 border border-indigo-800/40">
+                        <strong class="text-indigo-400 block mb-1">Môi trường Bazơ (pH > 7)</strong>
+                        <span class="text-slate-400 text-[11px] block">NaOH, Ba(OH)₂. Quỳ hóa Xanh, Phenolphthalein hóa Hồng.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 text-right">
+                <button onclick="closeModal('ph')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= GLOBAL LAB STATE =================
+        const labState = {
+            equipmentOnBench: [], // [{id, type, contents, temp, ph, liquidColor, precipitateColor, hasBubbles, hasSodiumFire, isStarchIodine, isHeating}]
+            selectedEquipmentId: null,
+            notebookLogs: []
+        };
+
+        // ================= DIVERSE REACTION DATABASE ENGINE =================
+        const CHEMICAL_REACTIONS = [
+            {
+                id: 'react_1',
+                reactants: ['NaOH', 'Phenolphthalein'],
+                resultColor: 'rgba(236, 72, 153, 0.85)', // Magenta Pink
+                equation: 'NaOH + Phenolphthalein → Dung dịch màu hồng kiềm',
+                phenomenon: 'Dung dịch trong suốt lập tức chuyển thành màu hồng tím rực rỡ.',
+                ph: 13,
+                bubbles: false
+            },
+            {
+                id: 'react_2',
+                reactants: ['HCl', 'Quỳ tím'],
+                resultColor: 'rgba(239, 68, 68, 0.85)', // Red
+                equation: 'HCl + Quỳ tím → Chỉ thị màu đỏ (Axit)',
+                phenomenon: 'Dung dịch quỳ tím hóa đỏ tươi do tác dụng axit mạnh HCl.',
+                ph: 1,
+                bubbles: false
+            },
+            {
+                id: 'react_3',
+                reactants: ['NaOH', 'Quỳ tím'],
+                resultColor: 'rgba(37, 99, 235, 0.85)', // Blue
+                equation: 'NaOH + Quỳ tím → Chỉ thị màu xanh (Kiềm)',
+                phenomenon: 'Dung dịch quỳ tím hóa xanh lam đậm.',
+                ph: 13,
+                bubbles: false
+            },
+            {
+                id: 'react_4',
+                reactants: ['CuSO4', 'NaOH'],
+                resultColor: 'rgba(56, 189, 248, 0.35)',
+                precipitateColor: 'rgba(2, 132, 199, 0.95)', // Cu(OH)2 Blue precipitate
+                equation: 'CuSO₄ + 2NaOH → Cu(OH)₂↓ + Na₂SO₄',
+                phenomenon: 'Xuất hiện KẾT TỦA KEO MÀU XANH LƠ Cu(OH)₂ đọng lắng dưới đáy cốc.',
+                ph: 9,
+                bubbles: false,
+                precipitate: true
+            },
+            {
+                id: 'react_5',
+                reactants: ['FeCl3', 'NaOH'],
+                resultColor: 'rgba(245, 158, 11, 0.3)',
+                precipitateColor: 'rgba(180, 83, 9, 0.95)', // Fe(OH)3 Reddish-brown
+                equation: 'FeCl₃ + 3NaOH → Fe(OH)₃↓ + 3NaCl',
+                phenomenon: 'Xuất hiện KẾT TỦA MÀU ĐỎ NÂU Fe(OH)₃ lắng đọng rất rõ nét.',
+                ph: 9,
+                bubbles: false,
+                precipitate: true
+            },
+            {
+                id: 'react_6',
+                reactants: ['FeSO4', 'NaOH'],
+                resultColor: 'rgba(16, 185, 129, 0.25)',
+                precipitateColor: 'rgba(20, 83, 45, 0.95)', // Fe(OH)2 Greenish precipitate
+                equation: 'FeSO₄ + 2NaOH → Fe(OH)₂↓ + Na₂SO₄',
+                phenomenon: 'Tạo KẾT TỦA XANH LỤC NHẠT (XANH RÊU) Fe(OH)₂ đọng lại.',
+                ph: 9,
+                bubbles: false,
+                precipitate: true
+            },
+            {
+                id: 'react_7',
+                reactants: ['AgNO3', 'BaCl2'],
+                resultColor: 'rgba(241, 245, 249, 0.3)',
+                precipitateColor: 'rgba(255, 255, 255, 0.95)', // AgCl White precipitate
+                equation: '2AgNO₃ + BaCl₂ → 2AgCl↓ + Ba(NO₃)₂',
+                phenomenon: 'Tạo KẾT TỦA MÀU TRẮNG AgCl lắng mịn dưới đáy.',
+                ph: 7,
+                bubbles: false,
+                precipitate: true
+            },
+            {
+                id: 'react_8',
+                reactants: ['BaCl2', 'H2SO4'],
+                resultColor: 'rgba(241, 245, 249, 0.3)',
+                precipitateColor: 'rgba(241, 245, 249, 0.95)', // BaSO4 White precipitate
+                equation: 'BaCl₂ + H₂SO₄ → BaSO₄↓ + 2HCl',
+                phenomenon: 'Tạo KẾT TỦA TRẮNG MỊN BaSO₄ không tan trong axit.',
+                ph: 1,
+                bubbles: false,
+                precipitate: true
+            },
+            {
+                id: 'react_9',
+                reactants: ['Zn', 'HCl'],
+                resultColor: 'rgba(241, 245, 249, 0.4)',
+                equation: 'Zn + 2HCl → ZnCl₂ + H₂↑',
+                phenomenon: 'Kim loại Zn tan dần và SỦI BỌT KHÍ HYDRO (H₂) thoát ra mãnh liệt.',
+                ph: 2,
+                bubbles: true,
+                precipitate: false
+            },
+            {
+                id: 'react_10',
+                reactants: ['Mg', 'H2SO4'],
+                resultColor: 'rgba(241, 245, 249, 0.4)',
+                equation: 'Mg + H₂SO₄ → MgSO₄ + H₂↑',
+                phenomenon: 'Dải Magie tan nhanh, tỏa nhiệt & sủi bọt khí H₂ cuồn cuộn.',
+                ph: 2,
+                bubbles: true,
+                precipitate: false
+            },
+            {
+                id: 'react_11',
+                reactants: ['CaCO3', 'HCl'],
+                resultColor: 'rgba(241, 245, 249, 0.4)',
+                equation: 'CaCO₃ + 2HCl → CaCl₂ + CO₂↑ + H₂O',
+                phenomenon: 'Đá vôi CaCO₃ sủi bọt khí CO₂ trào lên liên tục.',
+                ph: 4,
+                bubbles: true,
+                precipitate: false
+            },
+            {
+                id: 'react_12',
+                reactants: ['Na', 'H2O'],
+                resultColor: 'rgba(236, 72, 153, 0.4)',
+                equation: '2Na + 2H₂O → 2NaOH + H₂↑ (Tỏa nhiệt mạnh)',
+                phenomenon: 'Viên Natri nóng chảy xoay tròn trên mặt nước, BỐC CHÁY LỬA VÀNG/CAM mãnh liệt & tạo bazơ NaOH.',
+                ph: 13,
+                bubbles: true,
+                sodiumFire: true
+            },
+            {
+                id: 'react_13',
+                reactants: ['Hồ tinh bột', 'Dung dịch I2'],
+                resultColor: 'rgba(30, 27, 75, 0.95)', // Deep Blue Violet
+                equation: 'Hồ tinh bột + I₂ → Hợp chất màu XANH TÍM đặc trưng',
+                phenomenon: 'Dung dịch lập tức chuyển sang MÀU XANH TÍM ĐẬM ĐẶC TRƯNG của Iốt với Tinh bột.',
+                ph: 7,
+                bubbles: false,
+                precipitate: false
+            },
+            {
+                id: 'react_14',
+                reactants: ['KMnO4', 'FeSO4'],
+                resultColor: 'rgba(241, 245, 249, 0.2)', // Discoloration
+                equation: '10FeSO₄ + 2KMnO₄ + 8H₂SO₄ → 5Fe₂(SO₄)₃ + K₂SO₄ + 2MnSO₄ + 8H₂O',
+                phenomenon: 'Thuốc tím (KMnO₄) LẬP TỨC MẤT MÀU TÍM biến thành dung dịch gần như không màu.',
+                ph: 3,
+                bubbles: false,
+                precipitate: false
+            }
+        ];
+
+        // ================= SIDEBAR TAB SWITCH =================
+        function switchSidebarTab(tab) {
+            const btnChems = document.getElementById('tab-btn-chems');
+            const btnTools = document.getElementById('tab-btn-tools');
+            const contentChems = document.getElementById('tab-content-chems');
+            const contentTools = document.getElementById('tab-content-tools');
+
+            if (tab === 'chems') {
+                btnChems.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white flex justify-center items-center gap-2 transition";
+                btnTools.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 flex justify-center items-center gap-2 transition";
+                contentChems.classList.remove('hidden');
+                contentTools.classList.add('hidden');
+            } else {
+                btnTools.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white flex justify-center items-center gap-2 transition";
+                btnChems.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 flex justify-center items-center gap-2 transition";
+                contentTools.classList.remove('hidden');
+                contentChems.classList.add('hidden');
+            }
+        }
+
+        // ================= SPAWN EQUIPMENT TO BENCH =================
+        function spawnEquipment(type) {
+            const id = 'eq_' + Date.now();
+            const equipment = {
+                id,
+                type, // 'beaker', 'testtube', 'flask', 'burner'
+                contents: [],
+                temp: 25.0,
+                ph: 7.0,
+                liquidColor: 'transparent',
+                precipitateColor: null,
+                hasBubbles: false,
+                hasSodiumFire: false,
+                isHeating: false
+            };
+
+            labState.equipmentOnBench.push(equipment);
+            selectEquipment(id);
+            renderLabBench();
+        }
+
+        function selectEquipment(id) {
+            labState.selectedEquipmentId = id;
+            renderLabBench();
+            updateRightPanelMetrics();
+        }
+
+        function removeEquipment(id, e) {
+            if (e) e.stopPropagation();
+            labState.equipmentOnBench = labState.equipmentOnBench.filter(item => item.id !== id);
+            if (labState.selectedEquipmentId === id) {
+                labState.selectedEquipmentId = labState.equipmentOnBench.length > 0 ? labState.equipmentOnBench[0].id : null;
+            }
+            renderLabBench();
+            updateRightPanelMetrics();
+        }
+
+        // ================= ADD CHEMICAL =================
+        function addChemicalToSelected(chemName) {
+            if (!labState.selectedEquipmentId) {
+                alert("Vui lòng click chọn một dụng cụ thủy tinh (Beaker/Ống nghiệm/Bình tam giác) trên bàn trước!");
+                return;
+            }
+
+            const eq = labState.equipmentOnBench.find(item => item.id === labState.selectedEquipmentId);
+            if (!eq) return;
+
+            if (eq.type === 'burner') {
+                alert("Không thể rót hóa chất vào Đèn Cồn!");
+                return;
+            }
+
+            if (!eq.contents.includes(chemName)) {
+                eq.contents.push(chemName);
+                evaluateReactions(eq);
+                renderLabBench();
+                updateRightPanelMetrics();
+            }
+        }
+
+        // ================= EVALUATE CHEMICAL REACTION =================
+        function evaluateReactions(eq) {
+            let matched = null;
+
+            for (let rule of CHEMICAL_REACTIONS) {
+                const isMatch = rule.reactants.every(r => eq.contents.includes(r));
+                if (isMatch) {
+                    matched = rule;
+                    break;
+                }
+            }
+
+            if (matched) {
+                eq.liquidColor = matched.resultColor;
+                eq.ph = matched.ph;
+                eq.hasBubbles = matched.bubbles;
+                eq.hasSodiumFire = matched.sodiumFire || false;
+
+                if (matched.precipitate) {
+                    eq.precipitateColor = matched.precipitateColor;
+                }
+
+                // Append reaction to Lab Notebook
+                addNotebookLog(matched);
+            } else {
+                // Default standalone chemical colors
+                if (eq.contents.includes('CuSO4')) { eq.liquidColor = 'rgba(56, 189, 248, 0.55)'; eq.ph = 5; }
+                else if (eq.contents.includes('FeCl3')) { eq.liquidColor = 'rgba(245, 158, 11, 0.6)'; eq.ph = 4; }
+                else if (eq.contents.includes('FeSO4')) { eq.liquidColor = 'rgba(52, 211, 153, 0.4)'; eq.ph = 5; }
+                else if (eq.contents.includes('KMnO4')) { eq.liquidColor = 'rgba(168, 85, 247, 0.85)'; eq.ph = 7; }
+                else if (eq.contents.includes('Dung dịch I2')) { eq.liquidColor = 'rgba(217, 119, 6, 0.7)'; eq.ph = 6; }
+                else if (eq.contents.includes('Hồ tinh bột')) { eq.liquidColor = 'rgba(241, 245, 249, 0.5)'; eq.ph = 7; }
+                else if (eq.contents.includes('Quỳ tím')) { eq.liquidColor = 'rgba(147, 51, 234, 0.65)'; eq.ph = 7; }
+                else if (eq.contents.includes('HCl') || eq.contents.includes('H2SO4') || eq.contents.includes('HNO3')) { eq.liquidColor = 'rgba(241, 245, 249, 0.3)'; eq.ph = 1; }
+                else if (eq.contents.includes('NaOH') || eq.contents.includes('Ba(OH)2')) { eq.liquidColor = 'rgba(241, 245, 249, 0.3)'; eq.ph = 13; }
+                else if (eq.contents.includes('H2O')) { eq.liquidColor = 'rgba(56, 189, 248, 0.2)'; eq.ph = 7; }
+                else { eq.liquidColor = 'rgba(241, 245, 249, 0.25)'; eq.ph = 7; }
+            }
+        }
+
+        // ================= BURNER HEATING TOGGLE =================
+        function toggleBurner(id, e) {
+            if (e) e.stopPropagation();
+            const burner = labState.equipmentOnBench.find(item => item.id === id);
+            if (!burner || burner.type !== 'burner') return;
+
+            burner.isHeating = !burner.isHeating;
+
+            labState.equipmentOnBench.forEach(item => {
+                if (item.type !== 'burner') {
+                    item.isHeating = burner.isHeating;
+                    item.temp = burner.isHeating ? 92.4 : 25.0;
+                }
+            });
+
+            document.getElementById('burner-status-badge').style.display = burner.isHeating ? 'flex' : 'none';
+            renderLabBench();
+            updateRightPanelMetrics();
+        }
+
+        // ================= DIP PH PAPER =================
+        function dipPhPaper() {
+            if (!labState.selectedEquipmentId) {
+                alert("Vui lòng nhấp chọn một dụng cụ thủy tinh để thử giấy pH!");
+                return;
+            }
+
+            const eq = labState.equipmentOnBench.find(item => item.id === labState.selectedEquipmentId);
+            if (!eq || eq.type === 'burner') return;
+
+            const phVal = eq.ph || 7;
+            const strip = document.getElementById('ph-strip-result');
+            const colorBox = document.getElementById('ph-paper-color');
+            const valText = document.getElementById('ph-paper-value');
+            const natureText = document.getElementById('ph-paper-nature');
+
+            let colorHex = '#eab308';
+            let nature = 'Trung tính';
+
+            if (phVal <= 2) { colorHex = '#ef4444'; nature = 'Môi trường Axit Rất Mạnh'; }
+            else if (phVal <= 5) { colorHex = '#f97316'; nature = 'Môi trường Axit Yếu'; }
+            else if (phVal === 7) { colorHex = '#22c55e'; nature = 'Môi trường Trung Tính'; }
+            else if (phVal <= 10) { colorHex = '#06b6d4'; nature = 'Môi trường Bazơ Yếu'; }
+            else { colorHex = '#6366f1'; nature = 'Môi trường Bazơ Rất Mạnh'; }
+
+            colorBox.style.backgroundColor = colorHex;
+            valText.textContent = `pH ${phVal.toFixed(1)}`;
+            natureText.textContent = nature;
+
+            strip.classList.remove('hidden');
+            setTimeout(() => {
+                strip.classList.add('hidden');
+            }, 3500);
+        }
+
+        // ================= RENDER LAB BENCH =================
+        function renderLabBench() {
+            const bench = document.getElementById('lab-bench');
+            bench.innerHTML = '';
+
+            if (labState.equipmentOnBench.length === 0) {
+                bench.innerHTML = `
+                    <div class="text-center text-slate-500 py-16 pointer-events-none">
+                        <i class="fa-solid fa-hand-pointer text-4xl mb-3 opacity-30 animate-bounce"></i>
+                        <p class="text-xs font-semibold">Bàn thí nghiệm trống. Chọn dụng cụ ở tab "DỤNG CỤ" bên trái!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            labState.equipmentOnBench.forEach(item => {
+                const isSelected = item.id === labState.selectedEquipmentId;
+                const wrapper = document.createElement('div');
+                wrapper.className = `relative flex flex-col items-center justify-end p-5 transition-all duration-300 rounded-2xl cursor-pointer ${
+                    isSelected ? 'bg-slate-800/80 border border-indigo-500/80 glass-selected shadow-2xl scale-105' : 'hover:bg-slate-800/40 border border-transparent'
+                }`;
+                wrapper.onclick = () => selectEquipment(item.id);
+
+                let visualHTML = '';
+
+                if (item.type === 'burner') {
+                    visualHTML = `
+                        <div class="relative flex flex-col items-center w-28 h-40 justify-end">
+                            ${item.isHeating ? `
+                                <div class="flame-core w-8 h-14 bg-gradient-to-t from-amber-500 via-orange-400 to-yellow-200 rounded-full blur-[1px] absolute -top-10 shadow-[0_0_25px_rgba(251,191,36,0.9)]"></div>
+                            ` : ''}
+                            <div class="w-10 h-6 bg-slate-700 rounded-t-md border-b-2 border-slate-900 shadow-inner"></div>
+                            <div class="w-16 h-22 bg-slate-800 border-2 border-slate-700 rounded-b-2xl flex flex-col items-center justify-center p-2 shadow-2xl">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Cồn 90°</span>
+                                <button onclick="toggleBurner('${item.id}', event)" class="mt-2 w-full py-1 text-[10px] font-bold ${item.isHeating ? 'bg-rose-600 text-white' : 'bg-indigo-600 text-white'} rounded-lg shadow transition hover:opacity-90">
+                                    ${item.isHeating ? 'TẮT LỬA' : 'BẬT LỬA'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else if (item.type === 'beaker') {
+                    const liquidHeight = item.contents.length > 0 ? Math.min(item.contents.length * 20 + 20, 80) : 0;
+                    visualHTML = `
+                        <div class="relative w-36 h-44 border-b-4 border-x-4 border-slate-400/50 rounded-b-2xl glass-reflection backdrop-blur-xs flex flex-col justify-end overflow-hidden shadow-2xl">
+                            <div class="absolute left-1.5 top-3 bottom-3 flex flex-col justify-between text-[8px] font-mono text-slate-400 border-r border-slate-600/50 pr-1 select-none">
+                                <span>200ml</span>
+                                <span>150ml</span>
+                                <span>100ml</span>
+                                <span>50ml</span>
+                            </div>
+
+                            ${item.isHeating ? `
+                                <div class="steam-particle w-6 h-6 left-10 bottom-12"></div>
+                                <div class="steam-particle w-8 h-8 left-16 bottom-16"></div>
+                            ` : ''}
+
+                            ${item.hasSodiumFire ? `
+                                <div class="absolute top-10 left-12 w-6 h-6 bg-gradient-to-t from-orange-500 to-yellow-300 rounded-full sodium-active flex items-center justify-center">
+                                    <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                                </div>
+                            ` : ''}
+
+                            ${item.hasBubbles ? `
+                                <div class="bubble-particle w-2 h-2 left-10 bottom-2"></div>
+                                <div class="bubble-particle w-3 h-3 left-18 bottom-1"></div>
+                                <div class="bubble-particle w-2 h-2 left-24 bottom-3"></div>
+                            ` : ''}
+
+                            <div class="liquid-layer w-full" style="height: ${liquidHeight}%; background-color: ${item.liquidColor};"></div>
+
+                            ${item.precipitateColor ? `
+                                <div class="precipitate-layer absolute bottom-0 w-full h-4 rounded-b-xl" style="background-color: ${item.precipitateColor};"></div>
+                            ` : ''}
+                        </div>
+                    `;
+                } else if (item.type === 'testtube') {
+                    const liquidHeight = item.contents.length > 0 ? Math.min(item.contents.length * 22 + 20, 80) : 0;
+                    visualHTML = `
+                        <div class="relative w-14 h-48 border-b-4 border-x-4 border-slate-400/50 rounded-b-full glass-reflection backdrop-blur-xs flex flex-col justify-end overflow-hidden shadow-2xl">
+                            ${item.isHeating ? `
+                                <div class="steam-particle w-4 h-4 left-4 bottom-10"></div>
+                            ` : ''}
+                            ${item.hasBubbles ? `
+                                <div class="bubble-particle w-2 h-2 left-4 bottom-2"></div>
+                                <div class="bubble-particle w-2.5 h-2.5 left-7 bottom-1"></div>
+                            ` : ''}
+                            <div class="liquid-layer w-full" style="height: ${liquidHeight}%; background-color: ${item.liquidColor};"></div>
+                            ${item.precipitateColor ? `
+                                <div class="precipitate-layer absolute bottom-0 w-full h-5 rounded-b-full" style="background-color: ${item.precipitateColor};"></div>
+                            ` : ''}
+                        </div>
+                    `;
+                } else if (item.type === 'flask') {
+                    const liquidHeight = item.contents.length > 0 ? Math.min(item.contents.length * 20 + 20, 75) : 0;
+                    visualHTML = `
+                        <div class="relative w-32 h-44 glass-reflection flex flex-col justify-end items-center overflow-hidden shadow-2xl" style="clip-path: polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%); border-bottom: 4px solid rgba(148, 163, 184, 0.6);">
+                            ${item.isHeating ? `
+                                <div class="steam-particle w-6 h-6 left-12 bottom-12"></div>
+                            ` : ''}
+                            ${item.hasBubbles ? `
+                                <div class="bubble-particle w-2.5 h-2.5 left-12 bottom-2"></div>
+                                <div class="bubble-particle w-3 h-3 left-16 bottom-1"></div>
+                            ` : ''}
+                            <div class="liquid-layer w-full" style="height: ${liquidHeight}%; background-color: ${item.liquidColor};"></div>
+                            ${item.precipitateColor ? `
+                                <div class="precipitate-layer absolute bottom-0 w-full h-4" style="background-color: ${item.precipitateColor};"></div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                wrapper.innerHTML = `
+                    <button onclick="removeEquipment('${item.id}', event)" class="absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center shadow-lg z-10 transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    ${visualHTML}
+                    <div class="mt-2 flex flex-wrap gap-1 justify-center max-w-[140px]">
+                        ${item.contents.length > 0 ? item.contents.map(c => `<span class="bg-indigo-950/80 text-indigo-300 border border-indigo-800 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs">${c}</span>`).join('') : '<span class="text-[10px] text-slate-500">Rỗng</span>'}
+                    </div>
+                `;
+
+                bench.appendChild(wrapper);
+            });
+        }
+
+        // ================= UPDATE RIGHT MONITOR PANEL =================
+        function updateRightPanelMetrics() {
+            const metricTemp = document.getElementById('metric-temp');
+            const metricPh = document.getElementById('metric-ph');
+            const metricPhen = document.getElementById('metric-phenomenon');
+
+            if (!labState.selectedEquipmentId) {
+                metricTemp.textContent = "25.0 °C";
+                metricPh.textContent = "7.0 (Trung tính)";
+                metricPhen.textContent = "Chưa nhấp chọn dụng cụ nào trên bàn thí nghiệm.";
+                return;
+            }
+
+            const eq = labState.equipmentOnBench.find(item => item.id === labState.selectedEquipmentId);
+            if (!eq) return;
+
+            metricTemp.textContent = `${eq.temp.toFixed(1)} °C`;
+
+            let phText = `${eq.ph.toFixed(1)}`;
+            if (eq.ph < 7) phText += " (Axit)";
+            else if (eq.ph === 7) phText += " (Trung tính)";
+            else phText += " (Bazơ)";
+            metricPh.textContent = phText;
+
+            let matched = null;
+            for (let rule of CHEMICAL_REACTIONS) {
+                if (rule.reactants.every(r => eq.contents.includes(r))) {
+                    matched = rule;
+                    break;
+                }
+            }
+
+            if (matched) {
+                metricPhen.textContent = matched.phenomenon;
+            } else if (eq.contents.length > 0) {
+                metricPhen.textContent = `Hóa chất hiện có: ${eq.contents.join(', ')}. Chưa phát sinh phản ứng hóa học đặc trưng.`;
+            } else {
+                metricPhen.textContent = "Dụng cụ đang rỗng. Chọn thêm hóa chất ở danh mục bên trái.";
+            }
+        }
+
+        // ================= LOG REACTION TO NOTEBOOK =================
+        function addNotebookLog(reaction) {
+            const exists = labState.notebookLogs.some(l => l.id === reaction.id);
+            if (!exists) {
+                labState.notebookLogs.push(reaction);
+                renderNotebookList();
+            }
+        }
+
+        function renderNotebookList() {
+            const list = document.getElementById('notebook-list');
+            const emptyState = document.getElementById('notebook-empty');
+            const countBadge = document.getElementById('notebook-count');
+
+            countBadge.textContent = `${labState.notebookLogs.length} Phản ứng`;
+
+            if (labState.notebookLogs.length > 0 && emptyState) {
+                emptyState.remove();
+            }
+
+            list.innerHTML = labState.notebookLogs.map(log => `
+                <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-black uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded">
+                            Thành công
+                        </span>
+                        <span class="text-[10px] font-mono text-slate-400">pH ~ ${log.ph}</span>
+                    </div>
+                    <h5 class="text-xs font-bold text-slate-100 font-mono mt-1">${log.equation}</h5>
+                    <p class="text-[11px] text-slate-300 leading-normal">${log.phenomenon}</p>
+                </div>
+            `).join('');
+        }
+
+        // ================= CLEAN BENCH =================
+        function cleanLabBench() {
+            labState.equipmentOnBench = [];
+            labState.selectedEquipmentId = null;
+            document.getElementById('burner-status-badge').style.display = 'none';
+            renderLabBench();
+            updateRightPanelMetrics();
+        }
+
+        // ================= MODALS CONTROLLER =================
+        function openModal(id) {
+            document.getElementById(`modal-${id}`).classList.remove('hidden');
+        }
+        function closeModal(id) {
+            document.getElementById(`modal-${id}`).classList.add('hidden');
+        }
+
+        // ================= ON APP LOAD =================
+        window.onload = function() {
+            spawnEquipment('beaker');
+        };
+    </script>
+</body>
+</html>
